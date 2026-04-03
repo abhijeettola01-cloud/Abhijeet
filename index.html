@@ -60,12 +60,24 @@
         window.vapi.onReady(() => {
             console.log("VAPI Ready");
 
-            // BOT START on widget click
-            document.getElementById("voiceWidget").onclick = () => {
-                window.vapi.start({
-                    assistantId: assistantId,
-                    startMuted: false
-                });
+            // UPDATED CLICK HANDLER WITH FORCED MICROPHONE PERMISSION
+            document.getElementById("voiceWidget").onclick = async () => {
+                try {
+                    // Force mic permission popup
+                    await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                    console.log("Mic permission granted. Starting bot...");
+
+                    // Start VAPI bot
+                    window.vapi.start({
+                        assistantId: assistantId,
+                        startMuted: false
+                    });
+
+                } catch (err) {
+                    console.error("Mic blocked:", err);
+                    alert("Microphone access is required. Please allow it.");
+                }
             };
         });
     </script>
