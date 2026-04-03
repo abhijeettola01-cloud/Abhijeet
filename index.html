@@ -11,133 +11,69 @@
     <h1>Welcome to My Voice Bot Page</h1>
     <p>Click the floating mic widget to start.</p>
 
-    <!-- 🎤 Floating Voice Widget -->
-    <div id="voiceWidget" 
-        style="
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background: #ff4757;
-            color: white;
-            font-size: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            cursor: pointer;
-            z-index: 9999;
-        ">
-        🎤
-    </div>
+    <!-- VAPI SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web"></script>
 
-    <!-- 🎤 Voice Script -->
     <script>
-        let recognition;
+    // Initialize VAPI using your Public API Key
+    const vapi = new Vapi("701c97bc-a3c4-4aef-bd98-1ddf2682386e");
 
-        document.getElementById("voiceWidget").addEventListener("click", async () => {
+    // Create floating mic button
+    const micBtn = document.createElement("div");
+    micBtn.innerHTML = "🎤";
+    micBtn.style.cssText = `
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        width: 60px;
+        height: 60px;
+        background: #4CAF50;
+        color: white;
+        font-size: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 9999999;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        transition: background 0.3s ease;
+    `;
+    document.body.appendChild(micBtn);
+
+    let assistant = null;
+    let isActive = false;
+
+    // Handle button click
+    micBtn.onclick = async () => {
+        // Load assistant only once
+        if (!assistant) {
+            assistant = vapi.createAssistant({
+                assistantId: "48924dff-3df4-4c1c-8588-a13a6ba2dea6"
+            });
+        }
+
+        if (!isActive) {
             try {
-                console.log("Requesting microphone permission...");
-
-                // MUST be in click handler — triggers permission popup
-                await navigator.mediaDevices.getUserMedia({ audio: true });
-
-                console.log("Microphone permission granted!");
-
-                const SpeechRecognition =
-                    window.SpeechRecognition || window.webkitSpeechRecognition;
-
-                recognition = new SpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = false;
-                recognition.lang = "en-US";
-
-                recognition.start();
-
-                recognition.onstart = () => {
-                    console.log("🎤 Voice bot started...");
-                };
-
-                recognition.onresult = (event) => {
-                    const transcript =
-                        event.results[event.results.length - 1][0].transcript;
-                    console.log("User said:", transcript);
-                };
-
-                recognition.onerror = (err) => {
-                    console.error("Speech recognition error:", err);
-                };
-
+                console.log("🎤 Starting conversation...");
+                await assistant.start();
+                isActive = true;
+                micBtn.style.background = "#D9534F"; // red = active
             } catch (err) {
-                console.error("Microphone access denied or blocked:", err);
-                alert("⚠️ Please allow microphone access to use the voice bot.");
+                console.error("Error starting assistant:", err);
             }
-        });
+        } else {
+            try {
+                console.log("🛑 Stopping conversation...");
+                await assistant.stop();
+                isActive = false;
+                micBtn.style.background = "#4CAF50"; // green = idle
+            } catch (err) {
+                console.error("Error stopping assistant:", err);
+            }
+        }
+    };
     </script>
-<!-- VAPI SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web"></script>
 
-<script>
-// Initialize VAPI using your Public API Key
-const vapi = new Vapi("701c97bc-a3c4-4aef-bd98-1ddf2682386e");
-
-// Create floating mic button
-const micBtn = document.createElement("div");
-micBtn.innerHTML = "🎤";
-micBtn.style.cssText = `
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 60px;
-    height: 60px;
-    background: #4CAF50;
-    color: white;
-    font-size: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 9999999;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: background 0.3s ease;
-`;
-document.body.appendChild(micBtn);
-
-let assistant = null;
-let isActive = false;
-
-// Handle button click
-micBtn.onclick = async () => {
-    // Load assistant only once
-    if (!assistant) {
-        assistant = vapi.createAssistant({
-            assistantId: "48924dff-3df4-4c1c-8588-a13a6ba2dea6"
-        });
-    }
-
-    if (!isActive) {
-        try {
-            console.log("🎤 Starting conversation...");
-            await assistant.start();
-            isActive = true;
-            micBtn.style.background = "#D9534F"; // red = active
-        } catch (err) {
-            console.error("Error starting assistant:", err);
-        }
-    } else {
-        try {
-            console.log("🛑 Stopping conversation...");
-            await assistant.stop();
-            isActive = false;
-            micBtn.style.background = "#4CAF50"; // green = idle
-        } catch (err) {
-            console.error("Error stopping assistant:", err);
-        }
-    }
-};
-</script>
 </body>
 </html>
